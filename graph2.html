@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Value Hierarchy 2 - Suyao Liu</title>
+    <style>
+      :root {
+        /* Base Colors */
+        --primary: #6c5ce7;
+        --primary-light: #f0efff;
+        --text-dark: #2d3436;
+        --text-muted: #636e72;
+        --bg-page: #fdfbfb;
+        --line-color: #b2bec3;
+        --card-bg: #ffffff;
+
+        /* Branch Color Coding */
+        --branch-1: #ff7675; /* Soft Red/Pink */
+        --branch-2: #0984e3; /* Blue */
+        --branch-3: #00b894; /* Green/Teal */
+        --branch-4: #fdcb6e; /* Yellow/Orange */
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: var(--bg-page);
+        color: var(--text-dark);
+        margin: 0;
+        padding: 40px;
+        line-height: 1.5;
+      }
+
+      /* --- Navigation Bar CSS --- */
+      .top-nav {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 40px;
+        padding: 10px;
+        background: var(--card-bg);
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        flex-wrap: wrap;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .nav-link {
+        text-decoration: none;
+        color: var(--text-muted);
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 30px;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+      }
+
+      .nav-link:hover {
+        background-color: var(--primary-light);
+        color: var(--primary);
+      }
+
+      .nav-link.active {
+        background-color: var(--primary);
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+      }
+
+      .header-container {
+        max-width: 1200px;
+        margin: 0 auto 40px auto;
+        text-align: center;
+      }
+
+      .meta-info {
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+
+      h1 {
+        color: var(--primary);
+        margin: 0 0 10px 0;
+        font-size: 2.5rem;
+      }
+
+      .stakeholder-box {
+        display: inline-block;
+        background: var(--card-bg);
+        padding: 15px 30px;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        font-weight: 600;
+        border: 1px solid #e8f5e9;
+      }
+
+      .value-tags {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+      }
+
+      .tag {
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+
+      .tag.intrinsic {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      /* --- Horizontal Tree CSS (Scroll Fixed) --- */
+      .tree-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        padding: 20px;
+        display: flex;
+        justify-content: flex-start;
+        box-sizing: border-box;
+      }
+
+      .tree {
+        display: flex;
+        margin: 0 auto;
+        min-width: max-content;
+      }
+
+      .tree ul {
+        display: flex;
+        padding-top: 30px;
+        position: relative;
+        padding-left: 0;
+        margin: 0;
+        justify-content: center;
+      }
+
+      .tree li {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        list-style-type: none;
+        position: relative;
+        padding: 30px 10px 0 10px;
+      }
+
+      /* Connecting Lines */
+      .tree li::before,
+      .tree li::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 50%;
+        border-top: 2px solid var(--line-color);
+        width: 50%;
+        height: 30px;
+      }
+
+      .tree li::after {
+        right: auto;
+        left: 50%;
+        border-left: 2px solid var(--line-color);
+      }
+
+      .tree li:only-child::after,
+      .tree li:only-child::before {
+        display: none;
+      }
+
+      .tree li:only-child {
+        padding-top: 0;
+      }
+
+      .tree li:first-child::before,
+      .tree li:last-child::after {
+        border: 0 none;
+      }
+
+      .tree li:last-child::before {
+        border-right: 2px solid var(--line-color);
+        border-radius: 0 6px 0 0;
+      }
+
+      .tree li:first-child::after {
+        border-radius: 6px 0 0 0;
+      }
+
+      .tree ul ul::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        border-left: 2px solid var(--line-color);
+        width: 0;
+        height: 30px;
+      }
+
+      .tree > ul > li::before,
+      .tree > ul > li::after {
+        display: none;
+      }
+      .tree > ul > li {
+        padding-top: 0;
+      }
+
+      /* --- Cards --- */
+      .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        padding: 20px;
+        text-align: left;
+        border-top: 5px solid transparent;
+        position: relative;
+        box-sizing: border-box;
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      }
+
+      .card-header {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 10px;
+        letter-spacing: 0.5px;
+      }
+
+      .card-body {
+        font-weight: 500;
+        color: var(--text-dark);
+        line-height: 1.4;
+      }
+
+      /* Card Sizing */
+      .level-1-card {
+        width: 260px;
+        text-align: center;
+        border-top-color: #2e7d32;
+      }
+      .level-1-card .card-header {
+        color: var(--text-muted);
+      }
+      .level-1-card .card-body {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #2e7d32;
+      }
+
+      .level-2-card {
+        width: 240px;
+      }
+      .level-2-card .card-body {
+        font-size: 1.05rem;
+      }
+
+      .level-3-card {
+        width: 180px;
+      }
+      .level-3-card .card-body {
+        font-size: 0.9rem;
+        color: #4b6584;
+      }
+
+      /* --- Branch Color Coding --- */
+      /* Branch 1 */
+      .branch-1 .card {
+        border-top-color: var(--branch-1);
+      }
+      .branch-1 .card-header {
+        color: var(--branch-1);
+      }
+
+      /* Branch 2 */
+      .branch-2 .card {
+        border-top-color: var(--branch-2);
+      }
+      .branch-2 .card-header {
+        color: var(--branch-2);
+      }
+
+      /* Branch 3 */
+      .branch-3 .card {
+        border-top-color: var(--branch-3);
+      }
+      .branch-3 .card-header {
+        color: var(--branch-3);
+      }
+
+      /* Branch 4 */
+      .branch-4 .card {
+        border-top-color: var(--branch-4);
+      }
+      .branch-4 .card-header {
+        color: var(--branch-4);
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="top-nav">
+      <a href="graph1.html" class="nav-link">1. Trustworthiness</a>
+      <a href="graph2.html" class="nav-link active">2. Well-being</a>
+      <a href="graph3.html" class="nav-link">3. Accuracy</a>
+      <a href="graph4.html" class="nav-link">4. Transparency</a>
+    </nav>
+
+    <div class="header-container">
+      <div class="meta-info">Prepared by: Suyao Liu</div>
+      <h1>Value Hierarchy 2</h1>
+      <div class="stakeholder-box">
+        Stakeholder 1: Women stressed about cycle uncertainty
+      </div>
+      <div class="value-tags">
+        <div class="tag intrinsic">Intrinsic Value: Well-being</div>
+      </div>
+    </div>
+
+    <div class="tree-wrapper">
+      <div class="tree">
+        <ul>
+          <li>
+            <div class="card level-1-card">
+              <div class="card-header">Level 1 — Value</div>
+              <div class="card-body">Well-being</div>
+            </div>
+
+            <ul>
+              <li class="branch-1">
+                <div class="card level-2-card">
+                  <div class="card-header">Level 2 — Objective</div>
+                  <div class="card-body">
+                    Reduce anxiety around cycle uncertainty.
+                  </div>
+                </div>
+
+                <ul>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Pair every uncertainty message with a reassurance
+                        statement (e.g., “Cycle variation can be normal.”).
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Avoid using alarming terms such as “abnormal” or
+                        “warning” in non-critical contexts.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Provide a short explanation panel on factors that affect
+                        cycle variability.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Display prediction ranges instead of fixed dates.
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </li>
+
+              <li class="branch-2">
+                <div class="card level-2-card">
+                  <div class="card-header">Level 2 — Objective</div>
+                  <div class="card-body">Support informed body awareness.</div>
+                </div>
+                <ul>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Provide monthly pattern summary showing averages and
+                        variation.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Offer optional educational cards explaining cycle phases
+                        in neutral tone.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Allow users to log symptoms without mandatory
+                        interpretation.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Include trend visualization over multiple cycles.
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </li>
+
+              <li class="branch-3">
+                <div class="card level-2-card">
+                  <div class="card-header">Level 2 — Objective</div>
+                  <div class="card-body">
+                    Prevent stress-inducing messaging.
+                  </div>
+                </div>
+                <ul>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Disable push notifications that imply urgency unless
+                        user-configured.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Avoid red warning colors for non-critical information.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Replace deterministic language (“You will start your
+                        period tomorrow”) with probabilistic phrasing.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Require content review to remove fear-based framing.
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </li>
+
+              <li class="branch-4">
+                <div class="card level-2-card">
+                  <div class="card-header">Level 2 — Objective</div>
+                  <div class="card-body">
+                    Give users control over notifications and insights.
+                  </div>
+                </div>
+                <ul>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Allow users to toggle prediction notifications on or
+                        off.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Allow users to hide ovulation predictions.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Provide “Log-only mode” that disables predictive
+                        insights.
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    <div class="card level-3-card">
+                      <div class="card-header">Requirement</div>
+                      <div class="card-body">
+                        Allow users to customize frequency of reminders.
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
